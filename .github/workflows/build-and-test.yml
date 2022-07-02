@@ -1,0 +1,61 @@
+name: Build and Test
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: modlinks-sha-verifier
+          path: ./target/release/modlinks-sha-verifier
+
+  test:
+    needs: build
+    strategy:
+      matrix:
+        include:
+          - type: api
+            path: ./test/apilinks/correct.xml
+            error: false
+          - type: api
+            path: ./test/apilinks/incorrect.xml
+            error: true
+          - type: api
+            path: ./test/apilinks/invalid.xml
+            error: true
+          - type: mod
+            path: ./test/modlinks/correct.xml
+            error: false
+          - type: mod
+            path: ./test/modlinks/incorrect.xml
+            error: true
+          - type: mod
+            path: ./test/modlinks/invalid.xml
+            error: true
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: modlinks-sha-verifier
+
+      - name: Test
+        run: chmod 777 ./modlinks-sha-verifier && ./modlinks-sha-verifier ${{ matrix.type }} ${{ matrix.path }}
+        continue-on-error: ${{ matrix.error }}
