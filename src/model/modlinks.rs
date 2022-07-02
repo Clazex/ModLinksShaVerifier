@@ -19,7 +19,7 @@ impl Verifiable for ModLinks {
                 |mut a, m| {
                     if !m.verify() {
                         a.0 = false;
-                        a.1.push(m.name.to_owned());
+                        a.1.push(m.name.as_str());
                     }
 
                     a

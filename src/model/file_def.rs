@@ -36,7 +36,7 @@ impl FileDef {
         })?;
 
         let res = client
-            .get(self.url.to_owned())
+            .get(&self.url)
             .send()
             .map_err(|e| anyhow!("Failed to download\n::error title=Connection Error::{e}"))?;
 
