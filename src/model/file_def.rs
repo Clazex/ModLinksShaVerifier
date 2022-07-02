@@ -1,8 +1,6 @@
-use std::time::Duration;
-
-use anyhow::anyhow;
+use anyhow::{anyhow, Result};
 use reqwest::blocking::Client;
-use serde::{self, Deserialize};
+use serde::Deserialize;
 use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
@@ -32,22 +30,19 @@ impl FileDef {
         }
     }
 
-    fn verify_impl(&self) -> Result<String, anyhow::Error> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(60))
-            .build()
-            .map_err(|e| {
-                anyhow!("Failed to initialize connection\n::error title=Connection Error::{e}")
-            })?;
+    fn verify_impl(&self) -> Result<String> {
+        let client = Client::builder().build().map_err(|e| {
+            anyhow!("Failed to initialize connection\n::error title=Connection Error::{e}")
+        })?;
 
         let res = client
             .get(self.url.to_owned())
             .send()
             .map_err(|e| anyhow!("Failed to download\n::error title=Connection Error::{e}"))?;
 
-        let bytes = res.bytes().map_err(|e| {
-            anyhow!("Failed to parse response\n::error title=Connection Error::{e}")
-        })?;
+        let bytes = res
+            .bytes()
+            .map_err(|e| anyhow!("Failed to read response\n::error title=Connection Error::{e}"))?;
 
         let raw_hash = Sha256::digest(bytes);
         Ok(base16ct::upper::encode_string(&raw_hash))
