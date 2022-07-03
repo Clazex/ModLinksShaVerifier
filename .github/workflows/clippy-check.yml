@@ -1,0 +1,20 @@
+name: Clippy Check
+
+on: [push, pull_request]
+
+jobs:
+  clippy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Setup Clippy
+        run: rustup component add clippy
+
+      - name: Check
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
