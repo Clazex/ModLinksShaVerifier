@@ -1,6 +1,6 @@
 name: Build and Test
 
-on: push
+on: [push, pull_request]
 
 jobs:
   build:
@@ -12,12 +12,15 @@ jobs:
           persist-credentials: false
 
       - name: Build
-        run: cargo build --release
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: modlinks-sha-verifier
+          name: ModLinksShaVerifier
           path: ./target/release/modlinks-sha-verifier
 
   test:
@@ -54,7 +57,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: modlinks-sha-verifier
+          name: ModLinksShaVerifier
 
       - name: Test
         run: chmod 777 ./modlinks-sha-verifier && ./modlinks-sha-verifier ${{ matrix.type }} ${{ matrix.path }}
