@@ -1,5 +1,6 @@
+use std::io;
+
 use anyhow::{anyhow, Result};
-use reqwest::blocking::Client;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 
@@ -30,21 +31,17 @@ impl FileDef {
         }
     }
 
+    #[inline]
     fn verify_impl(&self) -> Result<String> {
-        let client = Client::builder().build().map_err(|e| {
-            anyhow!("Failed to initialize connection\n::error title=Connection Error::{e}")
-        })?;
+        let res = ureq::get(&self.url)
+            .call()
+            .map_err(|e| anyhow!("Failed to connect\n::error title=Network Error::{e}"))?;
 
-        let res = client
-            .get(&self.url)
-            .send()
-            .map_err(|e| anyhow!("Failed to download\n::error title=Connection Error::{e}"))?;
+        let mut hasher = Sha256::new();
+        io::copy(&mut res.into_reader(), &mut hasher)
+            .map_err(|e| anyhow!("Failed to read response\n::error title=Network Error::{e}"))?;
 
-        let bytes = res
-            .bytes()
-            .map_err(|e| anyhow!("Failed to read response\n::error title=Connection Error::{e}"))?;
-
-        let raw_hash = Sha256::digest(bytes);
+        let raw_hash = hasher.finalize();
         Ok(base16ct::upper::encode_string(&raw_hash))
     }
 }
