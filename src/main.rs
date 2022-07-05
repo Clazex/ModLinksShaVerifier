@@ -40,6 +40,11 @@ fn main() -> Result<()> {
         _ => bail!("Document type must be api or mod"),
     };
 
+    rayon::ThreadPoolBuilder::new()
+        //Since network speed is not a problem in the production environment, this *can* be very high
+        .num_threads(256)
+        .build_global()
+        .unwrap();
     let client = ureq::agent();
 
     println!("Starting verification\n");
