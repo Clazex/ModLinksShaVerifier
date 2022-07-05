@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::{Links, Verifiable};
+use super::{Links, Verify};
 
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 pub struct ApiLinks {
@@ -8,9 +8,9 @@ pub struct ApiLinks {
     manifest: Api,
 }
 
-impl Verifiable for ApiLinks {
-    fn verify(&self) -> bool {
-        self.manifest.verify()
+impl Verify for ApiLinks {
+    fn verify(&self, client: &ureq::Agent) -> bool {
+        self.manifest.verify(client)
     }
 }
 
@@ -21,8 +21,8 @@ struct Api {
 }
 
 impl Api {
-    pub fn verify(&self) -> bool {
-        let (res, msg) = self.links.verify();
+    pub fn verify(&self, client: &ureq::Agent) -> bool {
+        let (res, msg) = self.links.verify(client);
 
         println!(
             "API |{}| {msg}",

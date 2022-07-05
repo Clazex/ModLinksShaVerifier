@@ -19,9 +19,9 @@ pub enum Links {
 }
 
 impl Links {
-    pub fn verify(&self) -> (bool, String) {
+    pub fn verify(&self, client: &ureq::Agent) -> (bool, String) {
         match self {
-            Self::Universal(def) => def.verify(),
+            Self::Universal(def) => def.verify(client),
             Self::PlatformDependent {
                 windows,
                 mac,
@@ -31,9 +31,9 @@ impl Links {
                 let mut res_mac = None;
                 let mut res_linux = None;
                 rayon::scope(|s| {
-                    s.spawn(|_| res_windows = Some(windows.verify()));
-                    s.spawn(|_| res_mac = Some(mac.verify()));
-                    s.spawn(|_| res_linux = Some(linux.verify()));
+                    s.spawn(|_| res_windows = Some(windows.verify(client)));
+                    s.spawn(|_| res_mac = Some(mac.verify(client)));
+                    s.spawn(|_| res_linux = Some(linux.verify(client)));
                 });
 
                 let (r_windows, r_mac, r_linux) =

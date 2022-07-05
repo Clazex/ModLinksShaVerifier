@@ -13,8 +13,8 @@ pub struct FileDef {
 }
 
 impl FileDef {
-    pub fn verify(&self) -> (bool, String) {
-        match self.verify_impl() {
+    pub fn verify(&self, client: &ureq::Agent) -> (bool, String) {
+        match self.verify_impl(client) {
             Ok(hash) => {
                 let expected = self.sha256.to_uppercase();
                 match expected == hash {
@@ -32,8 +32,9 @@ impl FileDef {
     }
 
     #[inline]
-    fn verify_impl(&self) -> Result<String> {
-        let res = ureq::get(&self.url)
+    fn verify_impl(&self, client: &ureq::Agent) -> Result<String> {
+        let res = client
+            .get(&self.url)
             .call()
             .map_err(|e| anyhow!("Failed to connect\n::error title=Network Error::{e}"))?;
 

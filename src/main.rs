@@ -16,7 +16,7 @@ fn main() -> Result<()> {
     let buf = fs::read(&args[2])
         .map_err(|e| anyhow!("Failed to read XML file\n::error title=XML Read Error::{e}"))?;
 
-    let doc: Box<dyn Verifiable> = match args[1].to_str() {
+    let doc: Box<dyn Verify> = match args[1].to_str() {
         Some("api") => {
             println!("Deserializing ApiLinks document");
             Box::new(
@@ -40,11 +40,13 @@ fn main() -> Result<()> {
         _ => bail!("Document type must be api or mod"),
     };
 
+    let client = ureq::agent();
+
     println!("Starting verification\n");
     println!("{:-<111}", "");
 
     let start_time = Instant::now();
-    let res = doc.verify();
+    let res = doc.verify(&client);
     let duration = start_time.elapsed();
 
     println!("{:-<111}", "");
